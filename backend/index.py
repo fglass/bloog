@@ -6,7 +6,6 @@ from config import DATA_DIR, SOLR_URL
 def index():
     solr = pysolr.Solr(SOLR_URL, always_commit=True, timeout=10)
     solr.ping()
-    # solr.delete(q='*:*')
 
     documents = []
 
@@ -17,11 +16,11 @@ def index():
             documents.append(
                 {
                     "id": title,
-                    "title_s": title,
-                    "content_txt": text,
+                    "title_txt_en_split": title,
+                    "content_txt_en_split": text,
                 }
             )
-    
+
     solr.add(documents)
     print("✅ Indexed")
 

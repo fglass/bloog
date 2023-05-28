@@ -2,14 +2,23 @@ import pysolr
 from config import SOLR_URL
 
 
-def search():
-    solr = pysolr.Solr(SOLR_URL, always_commit=True)
-    results = solr.search("*:*")
-    print(f"Found {len(results)} results")
+def search(query: str):
+    results = _search(query)
+    print(f"🔍 Found {len(results)} results:")
 
-    for result in results:
-        result.pop("content_txt")
-        print(result)
+    for doc in results:
+        print(f"\t- {doc.get('id')}")
+
+    if results.debug:
+        print(results.debug)
+
+
+def _search(raw_query: str) -> pysolr.Results:
+    solr = pysolr.Solr(SOLR_URL, always_commit=True)
+    query = f"title_txt_en_split:{raw_query} OR content_txt_en_split:{raw_query}"
+    return solr.search(query, debug=False)
+
 
 if __name__ == "__main__":
-    search()
+    q = "elasticsearch"
+    search(q)

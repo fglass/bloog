@@ -1,4 +1,5 @@
+.vscode
 .venv
-data/
-solrdata/
-__pycache__/
+data
+solrdata
+__pycache__
