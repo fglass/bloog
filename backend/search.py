@@ -20,5 +20,5 @@ def _search(raw_query: str) -> pysolr.Results:
 
 
 if __name__ == "__main__":
-    q = "elasticsearch"
+    q = "code"
     search(q)

@@ -22,7 +22,7 @@ def index():
             )
 
     solr.add(documents)
-    print("✅ Indexed")
+    print(f"✅ Indexed {len(documents)} documents")
 
 
 if __name__ == "__main__":
