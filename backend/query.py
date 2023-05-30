@@ -3,7 +3,7 @@ from config import SOLR_URL
 
 
 def search(query: str):
-    results = _search(query)
+    results = _search_solr(query)
     print(f"🔍 Found {len(results)} results:")
 
     for doc in results:
@@ -13,12 +13,11 @@ def search(query: str):
         print(results.debug)
 
 
-def _search(raw_query: str) -> pysolr.Results:
+def _search_solr(raw_query: str) -> pysolr.Results:
     solr = pysolr.Solr(SOLR_URL, always_commit=True)
     query = f"title_txt_en_split:{raw_query} OR content_txt_en_split:{raw_query}"
     return solr.search(query, debug=False)
 
 
 if __name__ == "__main__":
-    q = "code"
-    search(q)
+    search(query="code")

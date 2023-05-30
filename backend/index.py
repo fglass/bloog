@@ -3,26 +3,29 @@ import pysolr
 from config import DATA_DIR, SOLR_URL
 
 
-def index():
-    solr = pysolr.Solr(SOLR_URL, always_commit=True, timeout=10)
+def index(drop: bool = False):
+    solr = pysolr.Solr(SOLR_URL, timeout=10, always_commit=True)
     solr.ping()
+
+    if drop:
+        solr.delete(q="*:*")
 
     documents = []
 
     for filename in os.listdir(DATA_DIR):
         with open(f"{DATA_DIR}/{filename}", "r") as f:
-            title = filename[:-4]
-            text = f.read()
+            title = filename.removesuffix(".txt")
+            content = f.read()
             documents.append(
                 {
                     "id": title,
                     "title_txt_en_split": title,
-                    "content_txt_en_split": text,
+                    "content_txt_en_split": content,
                 }
             )
 
     solr.add(documents)
-    print(f"✅ Indexed {len(documents)} documents")
+    print(f"✅ Added {len(documents)} documents")
 
 
 if __name__ == "__main__":
