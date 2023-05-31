@@ -3,6 +3,9 @@ from config import SOLR_URL
 
 
 def search(query: str) -> list[str]:
+    if query == "":
+        return []
+
     results = _search_solr(query)
 
     if results.debug:
