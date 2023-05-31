@@ -1,3 +1,5 @@
+fastapi
 feedparser
 newspaper3k
 pysolr
+uvicorn[standard]

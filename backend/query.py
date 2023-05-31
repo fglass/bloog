@@ -2,15 +2,13 @@ import pysolr
 from config import SOLR_URL
 
 
-def search(query: str):
+def search(query: str) -> list[str]:
     results = _search_solr(query)
-    print(f"🔍 Found {len(results)} results:")
-
-    for doc in results:
-        print(f"\t- {doc.get('id')}")
 
     if results.debug:
         print(results.debug)
+
+    return [doc.get("id") for doc in results]
 
 
 def _search_solr(raw_query: str) -> pysolr.Results:
@@ -20,4 +18,5 @@ def _search_solr(raw_query: str) -> pysolr.Results:
 
 
 if __name__ == "__main__":
-    search(query="code")
+    for doc in search(query="code"):
+        print(f"\t- {doc}")
