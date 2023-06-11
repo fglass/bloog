@@ -22,7 +22,6 @@ interface SearchResult {
   url: string;
 }
 
-// https://collegecompendium.org/explore
 const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([
@@ -45,6 +44,12 @@ const App = () => {
 
     const data = await response.json();
     setSearchResults(data.results);
+  };
+
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") {
+      onSearch(searchQuery);
+    }
   };
 
   const SearchResult = (result: SearchResult) => {
@@ -98,6 +103,7 @@ const App = () => {
                   fullWidth
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={onInputKeyDown}
                 />
               </div>
               <Button
