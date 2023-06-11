@@ -14,17 +14,26 @@ import {
 const SEARCH_SUGGESTIONS = ["AI", "ML", "Database", "React", "Index"];
 
 interface SearchResult {
-  source: string;
-  id: number;
+  id: string;
   title: string;
+  createdAt: string;
   description: string;
+  source: string;
+  url: string;
 }
 
 // https://collegecompendium.org/explore
 const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([
-    { id: 1, source: "Source", title: "Hello", description: "World" },
+    {
+      id: "1",
+      title: "Hello",
+      createdAt: "",
+      description: "World",
+      source: "",
+      url: "",
+    },
   ]);
 
   const onSearch = async (query: string) => {
@@ -51,7 +60,12 @@ const App = () => {
           <Typography variant="body2">{result.description}</Typography>
         </CardContent>
         <CardActions>
-          <Button color="secondary" size="small">
+          <Button
+            href={result.url}
+            target="_blank"
+            color="secondary"
+            size="small"
+          >
             View
           </Button>
         </CardActions>
