@@ -21,4 +21,15 @@ app.add_middleware(
 
 @app.get("/search")
 def search(q: str):
-    return {"results": query.search(q)}
+    results = query.search(q)
+    return {
+        "results": [
+            {
+                "id": doc,
+                "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                "title": doc,
+                "source": "DoorDash",
+            }
+            for doc in results
+        ]
+    }

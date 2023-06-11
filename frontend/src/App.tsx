@@ -1,18 +1,34 @@
-import * as React from "react";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import { useState } from "react";
+import React, { useState } from "react";
 import Button from "@mui/material/Button";
+import {
+  AppBar,
+  Card,
+  CardActions,
+  CardContent,
+  Chip,
+  TextField,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 
-export default function App() {
-  const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<string[]>([]);
+const SEARCH_SUGGESTIONS = ["AI", "ML", "Database", "React", "Index"];
 
-  const onSearch = async () => {
-    const response = await fetch(
-      `http://localhost:8000/search?q=${searchText}`
-    );
+interface SearchResult {
+  source: string;
+  id: number;
+  title: string;
+  description: string;
+}
+
+// https://collegecompendium.org/explore
+const App = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([
+    { id: 1, source: "Source", title: "Hello", description: "World" },
+  ]);
+
+  const onSearch = async (query: string) => {
+    const response = await fetch(`http://localhost:8000/search?q=${query}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch search results");
@@ -22,30 +38,91 @@ export default function App() {
     setSearchResults(data.results);
   };
 
-  return (
-    <Container maxWidth="sm">
-      <div className="my-4">
-        <Typography variant="h4" component="h1" gutterBottom>
-          🔍 Bloog
-        </Typography>
-        <TextField
-          id="search-field"
-          label="Search"
-          variant="outlined"
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-        />
-      </div>
-      <Button variant="outlined" onClick={onSearch}>
-        Search
-      </Button>
-      {searchResults.map((result) => (
-        <div key={result} className="my-4">
-          <Typography variant="body1" gutterBottom>
-            {result}
+  const SearchResult = (result: SearchResult) => {
+    return (
+      <Card sx={{ minWidth: 275 }} variant="outlined">
+        <CardContent>
+          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+            {result.source}
           </Typography>
+          <Typography variant="h5" component="div" sx={{ mb: 1.5 }}>
+            {result.title}
+          </Typography>
+          <Typography variant="body2">{result.description}</Typography>
+        </CardContent>
+        <CardActions>
+          <Button color="secondary" size="small">
+            View
+          </Button>
+        </CardActions>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <AppBar position="static" color="transparent" elevation={0}>
+        <Toolbar>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 800 }}>
+            🔍 Bloog
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <div className="py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="px-4 py-5 sm:p-6">
+            <Typography variant="h4" align="center" sx={{ fontWeight: 800 }}>
+              Technical Blog Search Engine
+            </Typography>
+            <div className="mt-6 flex">
+              <div className="relative flex-1">
+                <TextField
+                  id="outlined-basic"
+                  placeholder="Search"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button
+                color="secondary"
+                size="medium"
+                variant="outlined"
+                className="ml-4"
+                onClick={() => onSearch(searchQuery)}
+              >
+                Search
+              </Button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap">
+              {SEARCH_SUGGESTIONS.map((suggestion) => (
+                <Chip
+                  key={suggestion}
+                  label={suggestion}
+                  variant="outlined"
+                  className="mr-2 mt-2"
+                  onClick={() => {
+                    setSearchQuery(suggestion);
+                    onSearch(suggestion);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-      ))}
-    </Container>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
+          {searchResults.map((result) => (
+            <SearchResult key={result.id} {...result} />
+          ))}
+        </ul>
+      </div>
+    </div>
   );
-}
+};
+
+export default App;

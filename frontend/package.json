@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
+    "@fontsource/roboto": "^5.0.3",
     "@mui/material": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
