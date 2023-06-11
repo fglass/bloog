@@ -10,6 +10,7 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
 
 const SEARCH_SUGGESTIONS = ["AI", "ML", "Database", "React", "Index"];
 
@@ -22,34 +23,55 @@ interface SearchResult {
   url: string;
 }
 
+const API_URL = "http://localhost:8000";
+
 const App = () => {
+  const [rawSearchQuery, setRawSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([
-    {
-      id: "1",
-      title: "Hello",
-      createdAt: "",
-      description: "World",
-      source: "",
-      url: "",
+
+  const { data, error } = useQuery({
+    queryKey: ["searchQuery", searchQuery],
+    queryFn: () => {
+      if (searchQuery.trim() === "") {
+        return null;
+      }
+      return fetch(`${API_URL}/search?q=${searchQuery}`).then((res) =>
+        res.json()
+      );
     },
-  ]);
+  });
 
-  const onSearch = async (query: string) => {
-    const response = await fetch(`http://localhost:8000/search?q=${query}`);
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch search results");
-    }
-
-    const data = await response.json();
-    setSearchResults(data.results);
+  const onSearch = (query?: string) => {
+    setRawSearchQuery(query ?? rawSearchQuery);
+    setSearchQuery(query ?? rawSearchQuery);
   };
 
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter") {
-      onSearch(searchQuery);
+      onSearch();
     }
+  };
+
+  const renderResults = () => {
+    if (error != null) {
+      return <Typography>Error searching for "{searchQuery}"</Typography>;
+    }
+
+    if (data == null) {
+      return null;
+    }
+
+    if (data.results.length === 0) {
+      return <Typography>No Results for "{searchQuery}"</Typography>;
+    }
+
+    return (
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
+        {data.results.map((result: SearchResult) => (
+          <SearchResult key={result.id} {...result} />
+        ))}
+      </ul>
+    );
   };
 
   const SearchResult = (result: SearchResult) => {
@@ -101,8 +123,8 @@ const App = () => {
                   variant="outlined"
                   size="small"
                   fullWidth
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={rawSearchQuery}
+                  onChange={(e) => setRawSearchQuery(e.target.value)}
                   onKeyDown={onInputKeyDown}
                 />
               </div>
@@ -111,7 +133,7 @@ const App = () => {
                 size="medium"
                 variant="outlined"
                 className="ml-4"
-                onClick={() => onSearch(searchQuery)}
+                onClick={() => onSearch()}
               >
                 Search
               </Button>
@@ -124,10 +146,7 @@ const App = () => {
                   label={suggestion}
                   variant="outlined"
                   className="mr-2 mt-2"
-                  onClick={() => {
-                    setSearchQuery(suggestion);
-                    onSearch(suggestion);
-                  }}
+                  onClick={() => onSearch(suggestion)}
                 />
               ))}
             </div>
@@ -135,11 +154,7 @@ const App = () => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
-          {searchResults.map((result) => (
-            <SearchResult key={result.id} {...result} />
-          ))}
-        </ul>
+        {renderResults()}
       </div>
     </div>
   );
