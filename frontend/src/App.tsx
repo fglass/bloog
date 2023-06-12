@@ -6,6 +6,7 @@ import {
   CardActions,
   CardContent,
   Chip,
+  Pagination,
   TextField,
   Toolbar,
   Typography,
@@ -13,6 +14,11 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const SEARCH_SUGGESTIONS = ["AI", "ML", "Database", "React", "Index"];
+
+interface SearchResponse {
+  total: number;
+  results: SearchResult[];
+}
 
 interface SearchResult {
   id: string;
@@ -24,26 +30,29 @@ interface SearchResult {
 }
 
 const API_URL = "http://localhost:8000";
+const PAGE_SIZE = 9;
 
 const App = () => {
   const [rawSearchQuery, setRawSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [pageNumber, setPageNumber] = useState(0);
 
   const { data, error } = useQuery({
-    queryKey: ["searchQuery", searchQuery],
+    queryKey: ["searchQuery", searchQuery, pageNumber],
     queryFn: () => {
       if (searchQuery.trim() === "") {
         return null;
       }
-      return fetch(`${API_URL}/search?q=${searchQuery}`).then((res) =>
-        res.json()
-      );
+      return fetch(
+        `${API_URL}/search?q=${searchQuery}&page=${pageNumber}`
+      ).then((res) => res.json());
     },
   });
 
   const onSearch = (query?: string) => {
     setRawSearchQuery(query ?? rawSearchQuery);
     setSearchQuery(query ?? rawSearchQuery);
+    setPageNumber(0);
   };
 
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -65,12 +74,21 @@ const App = () => {
       return <Typography>No Results for "{searchQuery}"</Typography>;
     }
 
+    const pageCount = Math.ceil(data.total / PAGE_SIZE);
+
     return (
-      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
-        {data.results.map((result: SearchResult) => (
-          <SearchResult key={result.id} {...result} />
-        ))}
-      </ul>
+      <div>
+        <Pagination
+          count={pageCount}
+          page={pageNumber + 1}
+          onChange={(_, page) => setPageNumber(page - 1)}
+        />
+        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
+          {data.results.map((result: SearchResult) => (
+            <SearchResult key={result.id} {...result} />
+          ))}
+        </ul>
+      </div>
     );
   };
 
@@ -105,11 +123,11 @@ const App = () => {
       <AppBar position="static" color="transparent" elevation={0}>
         <Toolbar>
           <Typography variant="h5" component="div" sx={{ fontWeight: 800 }}>
-            🔍 Bloog
+            🔍 bloog
           </Typography>
         </Toolbar>
       </AppBar>
-      <div className="py-8">
+      <div className="pt-8 pb-4">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="px-4 py-5 sm:p-6">
             <Typography variant="h4" align="center" sx={{ fontWeight: 800 }}>
@@ -153,7 +171,7 @@ const App = () => {
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto pb-6 px-4 sm:px-6 lg:px-8">
         {renderResults()}
       </div>
     </div>

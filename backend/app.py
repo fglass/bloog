@@ -20,5 +20,5 @@ app.add_middleware(
 
 
 @app.get("/search")
-def search(q: str):
-    return {"results": query.search(q)}
+def search(q: str, page: int) -> dict:
+    return query.search(q, page)
