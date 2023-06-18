@@ -19,6 +19,7 @@ build
 .vscode
 solrdata
 data
+rss.py
 __pycache__
 
 npm-debug.log*

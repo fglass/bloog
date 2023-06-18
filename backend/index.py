@@ -43,6 +43,7 @@ def _to_document_model(filename: str, metadata: dict, content: str) -> dict:
         "id": filename,
         "content_txt_en_split": content,
         "title_txt_en_split": metadata.get("title"),
+        "summary_txt_en_split": metadata.get("summary"),
         "created_at_dt": metadata.get("created"),
         "url_s": metadata.get("url"),
         "author_s": metadata.get("author"),
@@ -51,6 +52,4 @@ def _to_document_model(filename: str, metadata: dict, content: str) -> dict:
 
 
 if __name__ == "__main__":
-    # https://solr.apache.org/guide/solr/latest/deployment-guide/solr-in-docker.html
-    # docker run -d -v "$PWD/solrdata:/var/solr" -p 8983:8983 --name my_solr solr solr-precreate articles
     index(drop=True)

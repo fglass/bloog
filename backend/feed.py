@@ -1,16 +1,8 @@
 import feedparser
 import os
 from datetime import datetime
-from config import DATA_DIR
+from config import DATA_DIR, ARTICLE_VERSION, RSS_FEEDS
 from newspaper import Article
-
-
-# https://backfeed.app
-# https://blog.feedspot.com/engineering_rss_feeds/
-VERSION = 1
-BACKFILLED_RSS_FEEDS = {
-    "DoorDash": "https://backfeed.app/eOL3r1ethXnHeNqBEy/https://doordash.engineering/feed"
-}
 
 
 def download_feed(feed_key: str, feed_url: str):
@@ -34,6 +26,7 @@ def download_feed(feed_key: str, feed_url: str):
             "title": entry.get("title"),
             "created": created_at_dt.isoformat(),
             "author": entry.get("author"),
+            "summary": entry.get("summary"),
             "tags": ",".join(tags),
             "url": article_url,
         }
@@ -49,14 +42,19 @@ def _download_article(feed: str, url: str | None, metadata: dict) -> bool:
         return False
 
     title = metadata.get("title")
-    content = _load_article(url)
 
-    if not title or not content:
+    if not title:
         return False
 
-    filepath = f"{DATA_DIR}/{feed}::{title}.txt"
+    sanitised_title = title.replace("/", "")
+    filepath = f"{DATA_DIR}/{feed}::{sanitised_title}.txt"
 
     if os.path.exists(filepath):  # TODO: compare version
+        return False
+
+    content = _load_article(url)
+
+    if not content:
         return False
 
     frontmatter = _create_frontmatter(metadata)
@@ -79,7 +77,7 @@ def _load_article(url) -> str:
 
 
 def _create_frontmatter(metadata: dict) -> str:
-    frontmatter = [f"version: {VERSION}"]
+    frontmatter = [f"version: {ARTICLE_VERSION}"]
 
     for k, v in metadata.items():
         frontmatter.append(f"{k}: {v}")
@@ -90,5 +88,5 @@ def _create_frontmatter(metadata: dict) -> str:
 
 
 if __name__ == "__main__":
-    for feed_key, feed_url in BACKFILLED_RSS_FEEDS.items():
+    for feed_key, feed_url in RSS_FEEDS.items():
         download_feed(feed_key, feed_url)

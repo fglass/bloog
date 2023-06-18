@@ -1,3 +1,4 @@
+import html
 import pysolr
 from config import SOLR_URL
 
@@ -30,7 +31,11 @@ def _to_view_model(doc: dict) -> dict:
         "createdAt": doc.get("created_at_dt"),
         "url": doc.get("url_s"),
         "source": doc.get("source_s"),
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": html.unescape(
+            doc.get("summary_txt_en_split", "")
+            .replace("<p>", "")
+            .replace("</p>", "")[:140]
+        ),
     }
 
 

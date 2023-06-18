@@ -11,9 +11,18 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import { useQuery } from "@tanstack/react-query";
+import { LoadingButton } from "@mui/lab";
 
-const SEARCH_SUGGESTIONS = ["AI", "ML", "Database", "React", "Index"];
+const SEARCH_SUGGESTIONS = [
+  "AI",
+  "React",
+  "Kafka",
+  "Database",
+  "Index",
+  "Interview",
+];
 
 interface SearchResponse {
   total: number;
@@ -34,24 +43,21 @@ const PAGE_SIZE = 9;
 
 const App = () => {
   const [rawSearchQuery, setRawSearchQuery] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("*");
   const [pageNumber, setPageNumber] = useState(0);
 
-  const { data, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["searchQuery", searchQuery, pageNumber],
-    queryFn: () => {
-      if (searchQuery.trim() === "") {
-        return null;
-      }
-      return fetch(
-        `${API_URL}/search?q=${searchQuery}&page=${pageNumber}`
-      ).then((res) => res.json());
-    },
+    queryFn: () =>
+      fetch(`${API_URL}/search?q=${searchQuery}&page=${pageNumber}`).then(
+        (res) => res.json()
+      ),
   });
 
   const onSearch = (query?: string) => {
-    setRawSearchQuery(query ?? rawSearchQuery);
-    setSearchQuery(query ?? rawSearchQuery);
+    const q = query ?? rawSearchQuery;
+    setRawSearchQuery(q);
+    setSearchQuery(q.trim() === "" ? "*" : q);
     setPageNumber(0);
   };
 
@@ -102,7 +108,10 @@ const App = () => {
           <Typography variant="h5" component="div" sx={{ mb: 1.5 }}>
             {result.title}
           </Typography>
-          <Typography variant="body2">{result.description}</Typography>
+          <Typography variant="body2">
+            {result.description}
+            {result.description.length >= 140 && "..."}
+          </Typography>
         </CardContent>
         <CardActions>
           <Button
@@ -138,23 +147,34 @@ const App = () => {
                 <TextField
                   id="outlined-basic"
                   placeholder="Search"
-                  variant="outlined"
+                  color="secondary"
                   size="small"
+                  variant="outlined"
                   fullWidth
+                  sx={{
+                    fieldset: { borderRight: "none" },
+                  }}
+                  InputProps={{
+                    style: {
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    },
+                  }}
                   value={rawSearchQuery}
                   onChange={(e) => setRawSearchQuery(e.target.value)}
                   onKeyDown={onInputKeyDown}
                 />
               </div>
-              <Button
+              <LoadingButton
+                loading={isLoading}
                 color="secondary"
                 size="medium"
                 variant="outlined"
-                className="ml-4"
+                className="rounded-l-none"
                 onClick={() => onSearch()}
               >
-                Search
-              </Button>
+                <SearchIcon />
+              </LoadingButton>
             </div>
 
             <div className="mt-4 flex flex-wrap">
