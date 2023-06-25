@@ -6,15 +6,21 @@ import {
   CardActions,
   CardContent,
   Chip,
+  IconButton,
+  Menu,
+  MenuItem,
   Pagination,
   TextField,
   Toolbar,
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import SortIcon from "@mui/icons-material/Sort";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingButton } from "@mui/lab";
 
+const API_URL = "http://localhost:8000";
+const PAGE_SIZE = 9;
 const SEARCH_SUGGESTIONS = [
   "AI",
   "React",
@@ -38,15 +44,15 @@ interface SearchResult {
   url: string;
 }
 
-const API_URL = "http://localhost:8000";
-const PAGE_SIZE = 9;
+type SortOption = "relevancy" | "date";
 
 const App = () => {
   const [rawSearchQuery, setRawSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("*");
   const [pageNumber, setPageNumber] = useState(0);
+  const [sortOption, setSortOption] = useState<SortOption>("relevancy");
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<SearchResponse>({
     queryKey: ["searchQuery", searchQuery, pageNumber],
     queryFn: () =>
       fetch(`${API_URL}/search?q=${searchQuery}&page=${pageNumber}`).then(
@@ -67,7 +73,7 @@ const App = () => {
     }
   };
 
-  const renderResults = () => {
+  const SearchResults = () => {
     if (error != null) {
       return <Typography>Error searching for "{searchQuery}"</Typography>;
     }
@@ -84,11 +90,16 @@ const App = () => {
 
     return (
       <div>
-        <Pagination
-          count={pageCount}
-          page={pageNumber + 1}
-          onChange={(_, page) => setPageNumber(page - 1)}
-        />
+        <div className="columns-2">
+          <Pagination
+            count={pageCount}
+            page={pageNumber + 1}
+            onChange={(_, page) => setPageNumber(page - 1)}
+          />
+          <span className="float-right">
+            <SortMenu />
+          </span>
+        </div>
         <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
           {data.results.map((result: SearchResult) => (
             <SearchResult key={result.id} {...result} />
@@ -98,34 +109,80 @@ const App = () => {
     );
   };
 
-  const SearchResult = (result: SearchResult) => {
+  const SortMenu = () => {
+    const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+    const isOpen = anchorEl != null;
+    const onSortOption = (option: SortOption) => {
+      setSortOption(option);
+      setAnchorEl(null);
+    };
+
     return (
-      <Card sx={{ minWidth: 275 }} variant="outlined">
-        <CardContent>
-          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-            {result.source}
-          </Typography>
-          <Typography variant="h5" component="div" sx={{ mb: 1.5 }}>
-            {result.title}
-          </Typography>
-          <Typography variant="body2">
-            {result.description}
-            {result.description.length >= 140 && "..."}
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button
-            href={result.url}
-            target="_blank"
-            color="secondary"
-            size="small"
+      <>
+        <IconButton
+          id="sort-button"
+          title="Sort"
+          color="secondary"
+          aria-controls={isOpen ? "sort-menu" : undefined}
+          aria-expanded={isOpen ? "true" : undefined}
+          aria-haspopup="true"
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+        >
+          <SortIcon />
+        </IconButton>
+        <Menu
+          id="sort-menu"
+          anchorEl={anchorEl}
+          open={isOpen}
+          onClose={() => setAnchorEl(null)}
+          MenuListProps={{
+            "aria-labelledby": "sort-button",
+          }}
+        >
+          <MenuItem
+            selected={sortOption === "relevancy"}
+            onClick={() => onSortOption("relevancy")}
           >
-            View
-          </Button>
-        </CardActions>
-      </Card>
+            Relevancy
+          </MenuItem>
+          <MenuItem
+            selected={sortOption === "date"}
+            onClick={() => onSortOption("date")}
+          >
+            Date
+          </MenuItem>
+        </Menu>
+      </>
     );
   };
+
+  const SearchResult = (result: SearchResult) => (
+    <Card sx={{ minWidth: 275 }} variant="outlined">
+      <CardContent>
+        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+          {result.source}
+        </Typography>
+        <Typography variant="h5" component="div" sx={{ mb: 1.5 }}>
+          {result.title}
+        </Typography>
+        <Typography variant="body2">
+          {result.description}
+          {result.description.length >= 140 && "..."}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          href={result.url}
+          target="_blank"
+          color="secondary"
+          size="small"
+        >
+          View
+        </Button>
+      </CardActions>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -192,7 +249,7 @@ const App = () => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto pb-6 px-4 sm:px-6 lg:px-8">
-        {renderResults()}
+        <SearchResults />
       </div>
     </div>
   );
