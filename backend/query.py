@@ -5,11 +5,11 @@ from config import SOLR_URL
 PAGE_SIZE = 9
 
 
-def search(query: str, page_number: int) -> dict:
+def search(query: str, sort_option: str, page_number: int) -> dict:
     if query == "":
         return []
 
-    results = _search_solr(query, page_number)
+    results = _search_solr(query, sort_option, page_number)
 
     if results.debug:
         print(results.debug)
@@ -17,11 +17,15 @@ def search(query: str, page_number: int) -> dict:
     return {"total": results.hits, "results": [_to_view_model(doc) for doc in results]}
 
 
-def _search_solr(raw_query: str, page_number: int) -> pysolr.Results:
+def _search_solr(raw_query: str, sort_option: str, page_number: int) -> pysolr.Results:
     solr = pysolr.Solr(SOLR_URL, always_commit=True)
     query = f"title_txt_en_split:{raw_query} OR content_txt_en_split:{raw_query}"
-    start = page_number * PAGE_SIZE
-    return solr.search(query, rows=PAGE_SIZE, start=start, debug=False)
+    params = {"rows": PAGE_SIZE, "start": page_number * PAGE_SIZE, "debug": False}
+
+    if sort_option == "newest":
+        params["sort"] = "created_at_dt desc"
+
+    return solr.search(query, **params)
 
 
 def _to_view_model(doc: dict) -> dict:

@@ -44,7 +44,7 @@ interface SearchResult {
   url: string;
 }
 
-type SortOption = "relevancy" | "date";
+type SortOption = "relevancy" | "newest";
 
 const App = () => {
   const [rawSearchQuery, setRawSearchQuery] = useState("");
@@ -53,11 +53,13 @@ const App = () => {
   const [sortOption, setSortOption] = useState<SortOption>("relevancy");
 
   const { data, isLoading, error } = useQuery<SearchResponse>({
-    queryKey: ["searchQuery", searchQuery, pageNumber],
-    queryFn: () =>
-      fetch(`${API_URL}/search?q=${searchQuery}&page=${pageNumber}`).then(
-        (res) => res.json()
-      ),
+    queryKey: ["search", searchQuery, sortOption, pageNumber],
+    queryFn: () => {
+      const sort = searchQuery === "*" ? "newest" : sortOption;
+      return fetch(
+        `${API_URL}/search?q=${searchQuery}&sort=${sort}&page=${pageNumber}`
+      ).then((res) => res.json());
+    },
   });
 
   const onSearch = (query?: string) => {
@@ -97,7 +99,7 @@ const App = () => {
             onChange={(_, page) => setPageNumber(page - 1)}
           />
           <span className="float-right">
-            <SortMenu />
+            {searchQuery !== "*" && <SortMenu />}
           </span>
         </div>
         <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
@@ -147,10 +149,10 @@ const App = () => {
             Relevancy
           </MenuItem>
           <MenuItem
-            selected={sortOption === "date"}
-            onClick={() => onSortOption("date")}
+            selected={sortOption === "newest"}
+            onClick={() => onSortOption("newest")}
           >
-            Date
+            Newest
           </MenuItem>
         </Menu>
       </>
