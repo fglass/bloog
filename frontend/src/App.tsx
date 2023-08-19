@@ -24,6 +24,7 @@ const PAGE_SIZE = 9;
 const SEARCH_SUGGESTIONS = [
   "AI",
   "React",
+  "Python",
   "Kafka",
   "Database",
   "Index",
@@ -52,14 +53,18 @@ const App = () => {
   const [pageNumber, setPageNumber] = useState(0);
   const [sortOption, setSortOption] = useState<SortOption>("relevancy");
 
+  const fetchSearchResults = async () => {
+    const sort = searchQuery === "*" ? "newest" : sortOption;
+    const resp = await fetch(
+      `${API_URL}/search?q=${searchQuery}&sort=${sort}&page=${pageNumber}`
+    );
+    return await resp.json();
+  };
+
   const { data, isLoading, error } = useQuery<SearchResponse>({
-    queryKey: ["search", searchQuery, sortOption, pageNumber],
-    queryFn: () => {
-      const sort = searchQuery === "*" ? "newest" : sortOption;
-      return fetch(
-        `${API_URL}/search?q=${searchQuery}&sort=${sort}&page=${pageNumber}`
-      ).then((res) => res.json());
-    },
+    queryKey: ["search", { searchQuery, sortOption, pageNumber }],
+    queryFn: fetchSearchResults,
+    keepPreviousData: true,
   });
 
   const onSearch = (query?: string) => {
@@ -113,7 +118,6 @@ const App = () => {
 
   const SortMenu = () => {
     const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-
     const isOpen = anchorEl != null;
     const onSortOption = (option: SortOption) => {
       setSortOption(option);
