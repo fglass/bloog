@@ -21,6 +21,8 @@ import { LoadingButton } from "@mui/lab";
 
 const API_URL = "http://localhost:8000";
 const PAGE_SIZE = 9;
+const MAX_DESCRIPTION_LENGTH = 140;
+
 const SEARCH_SUGGESTIONS = [
   "AI",
   "React",
@@ -109,7 +111,7 @@ const App = () => {
         </div>
         <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
           {data.results.map((result: SearchResult) => (
-            <SearchResult key={result.id} {...result} />
+            <SearchResultCard key={result.id} {...result} />
           ))}
         </ul>
       </div>
@@ -163,20 +165,33 @@ const App = () => {
     );
   };
 
-  const SearchResult = (result: SearchResult) => (
-    <Card sx={{ minWidth: 275 }} variant="outlined">
+  const SearchResultCard = (result: SearchResult) => (
+    <Card sx={{ minWidth: 275, height: 275 }} variant="outlined">
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          {result.source}
+          {result.source} - {new Date(result.createdAt).toLocaleDateString()}
         </Typography>
-        <Typography variant="h5" component="div" sx={{ mb: 1.5 }}>
+        <Typography
+          variant="h5"
+          component="div"
+          title={result.title}
+          sx={{
+            overflow: "hidden",
+            display: "-webkit-box",
+            lineClamp: 3,
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            mb: 1.5,
+          }}
+        >
           {result.title}
         </Typography>
         <Typography variant="body2">
           {result.description}
-          {result.description.length >= 140 && "..."}
+          {result.description.length >= MAX_DESCRIPTION_LENGTH && "..."}
         </Typography>
       </CardContent>
+      <div className="flex-grow" />
       <CardActions>
         <Button
           href={result.url}
