@@ -7,11 +7,11 @@ PAGE_SIZE = 9
 MAX_DESCRIPTION_LENGTH = 140
 
 
-def search(query: str, sort_option: str, page_number: int) -> dict:
+def search(query: str, sort_option: str, page_number: int, debug: bool = False) -> dict:
     if query == "":
         return []
 
-    results = _search_solr(query, sort_option, page_number)
+    results = _search_solr(query, sort_option, page_number, debug)
 
     if results.debug:
         print(results.debug)
@@ -19,27 +19,33 @@ def search(query: str, sort_option: str, page_number: int) -> dict:
     return {"total": results.hits, "results": [_to_view_model(doc) for doc in results]}
 
 
-def _search_solr(raw_query: str, sort_option: str, page_number: int) -> pysolr.Results:
-    solr = pysolr.Solr(SOLR_URL, always_commit=True)
-    query = f"title_txt_en_split:{raw_query} OR content_txt_en_split:{raw_query}"
-    params = {"rows": PAGE_SIZE, "start": page_number * PAGE_SIZE, "debug": False}
+def _search_solr(
+    raw_query: str, sort_option: str, page_number: int, debug: bool
+) -> pysolr.Results:
+    query = _to_solr_query(raw_query)
+    params = {"rows": PAGE_SIZE, "start": page_number * PAGE_SIZE, "debug": debug}
 
     if sort_option == "newest":
         params["sort"] = "created_at_dt desc"
 
-    return solr.search(query, **params)  # TODO: prefix matching
+    solr = pysolr.Solr(SOLR_URL, always_commit=True)
+    return solr.search(query, **params)
+
+
+def _to_solr_query(raw_query: str) -> str:
+    return f"title_txt_en_split:{raw_query} OR title_txt_en_split:{raw_query}* OR content_txt_en_split:{raw_query}"
 
 
 def _to_view_model(doc: dict) -> dict:
     description = doc.get("summary_txt_en_split", "")
-    sanitised_description = re.sub("<[^<]+?>", "", description)
+    sanitised_description = re.sub("<[^<]+?>", "", html.unescape(description))
     return {
         "id": doc.get("id"),
         "title": doc.get("title_txt_en_split"),
         "createdAt": doc.get("created_at_dt"),
         "url": doc.get("url_s"),
         "source": doc.get("source_s"),
-        "description": html.unescape(sanitised_description[:MAX_DESCRIPTION_LENGTH]),
+        "description": sanitised_description[:MAX_DESCRIPTION_LENGTH],
     }
 
 
