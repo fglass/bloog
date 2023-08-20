@@ -13,10 +13,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const rootElement = document.getElementById("root");
 const root = ReactDOM.createRoot(rootElement!);
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+    },
+  },
+});
 
-// All `Portal`-related components need to have the the main app wrapper element as a container
-// so that the are in the subtree under the element used in the `important` option of the Tailwind's config.
 const theme = createTheme({
   components: {
     MuiPopover: {
