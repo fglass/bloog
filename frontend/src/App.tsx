@@ -186,7 +186,16 @@ const App = () => {
         >
           {result.title}
         </Typography>
-        <Typography variant="body2">
+        <Typography
+          variant="body2"
+          sx={{
+            overflow: "hidden",
+            display: "-webkit-box",
+            lineClamp: 4,
+            WebkitLineClamp: 4,
+            WebkitBoxOrient: "vertical",
+          }}
+        >
           {result.description}
           {result.description.length >= MAX_DESCRIPTION_LENGTH && "..."}
         </Typography>
@@ -230,7 +239,17 @@ const App = () => {
                   variant="outlined"
                   fullWidth
                   sx={{
-                    fieldset: { borderRight: "none" },
+                    "& .MuiOutlinedInput-root": {
+                      fieldset: { borderRight: "none" },
+                      "&:hover fieldset": {
+                        borderColor: "rgba(0, 0, 0, 0.23)",
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "rgba(0, 0, 0, 0.23)",
+                        borderWidth: "1px",
+                      },
+                    },
                   }}
                   InputProps={{
                     style: {
