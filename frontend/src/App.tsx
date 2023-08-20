@@ -18,6 +18,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import SortIcon from "@mui/icons-material/Sort";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingButton } from "@mui/lab";
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en";
+
+TimeAgo.addDefaultLocale(en);
+const timeAgo = new TimeAgo("en-US");
 
 const API_URL = "http://localhost:8000";
 const PAGE_SIZE = 9;
@@ -168,9 +173,14 @@ const App = () => {
   const SearchResultCard = (result: SearchResult) => (
     <Card sx={{ minWidth: 275, height: 275 }} variant="outlined">
       <CardContent>
-        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          {result.source} - {new Date(result.createdAt).toLocaleDateString()}
-        </Typography>
+        <div className="flex flex-row justify-between">
+          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+            {result.source}
+          </Typography>
+          <Typography sx={{ fontSize: 14 }} color="text.secondary">
+            {timeAgo.format(new Date(result.createdAt))}
+          </Typography>
+        </div>
         <Typography
           variant="h5"
           component="div"

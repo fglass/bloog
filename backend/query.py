@@ -27,7 +27,7 @@ def _search_solr(raw_query: str, sort_option: str, page_number: int) -> pysolr.R
     if sort_option == "newest":
         params["sort"] = "created_at_dt desc"
 
-    return solr.search(query, **params)
+    return solr.search(query, **params)  # TODO: prefix matching
 
 
 def _to_view_model(doc: dict) -> dict:
