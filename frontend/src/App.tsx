@@ -52,16 +52,25 @@ interface SearchResult {
   url: string;
 }
 
-type SortOption = "relevancy" | "newest";
+enum SortOption {
+  Relevancy = "relevancy",
+  Newest = "newest",
+}
 
 const App = () => {
   const [rawSearchQuery, setRawSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("*");
   const [pageNumber, setPageNumber] = useState(0);
-  const [sortOption, setSortOption] = useState<SortOption>("relevancy");
+  const [sortOption, setSortOption] = useState<SortOption>(
+    SortOption.Relevancy
+  );
+
+  const isAllQuery = () => searchQuery === "*";
+
+  const getSortOption = () => (isAllQuery() ? SortOption.Newest : sortOption);
 
   const fetchSearchResults = async () => {
-    const sort = searchQuery === "*" ? "newest" : sortOption;
+    const sort = getSortOption();
     const resp = await fetch(
       `${API_URL}/search?q=${searchQuery}&sort=${sort}&page=${pageNumber}`
     );
@@ -111,7 +120,7 @@ const App = () => {
             onChange={(_, page) => setPageNumber(page - 1)}
           />
           <span className="float-right">
-            {searchQuery !== "*" && <SortMenu />}
+            <SortMenu />
           </span>
         </div>
         <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 px-0">
@@ -154,14 +163,15 @@ const App = () => {
           }}
         >
           <MenuItem
-            selected={sortOption === "relevancy"}
-            onClick={() => onSortOption("relevancy")}
+            selected={getSortOption() === SortOption.Relevancy}
+            disabled={isAllQuery()}
+            onClick={() => onSortOption(SortOption.Relevancy)}
           >
             Relevancy
           </MenuItem>
           <MenuItem
-            selected={sortOption === "newest"}
-            onClick={() => onSortOption("newest")}
+            selected={getSortOption() === SortOption.Newest}
+            onClick={() => onSortOption(SortOption.Newest)}
           >
             Newest
           </MenuItem>
