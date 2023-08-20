@@ -1,8 +1,10 @@
 import html
 import pysolr
+import re
 from config import SOLR_URL
 
 PAGE_SIZE = 9
+MAX_DESCRIPTION_LENGTH = 140
 
 
 def search(query: str, sort_option: str, page_number: int) -> dict:
@@ -29,17 +31,15 @@ def _search_solr(raw_query: str, sort_option: str, page_number: int) -> pysolr.R
 
 
 def _to_view_model(doc: dict) -> dict:
+    description = doc.get("summary_txt_en_split", "")
+    sanitised_description = re.sub("<[^<]+?>", "", description)
     return {
         "id": doc.get("id"),
         "title": doc.get("title_txt_en_split"),
         "createdAt": doc.get("created_at_dt"),
         "url": doc.get("url_s"),
         "source": doc.get("source_s"),
-        "description": html.unescape(
-            doc.get("summary_txt_en_split", "")
-            .replace("<p>", "")
-            .replace("</p>", "")[:140]
-        ),
+        "description": html.unescape(sanitised_description[:MAX_DESCRIPTION_LENGTH]),
     }
 
 
