@@ -17,8 +17,10 @@ build
 .env.test.local
 .env.production.local
 .vscode
-solrdata
-data
+backend/data
+backend/solrdata/logs
+backend/solrdata/data/**/*.txt
+backend/solrdata/data/*/data
 rss.py
 __pycache__
 
